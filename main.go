@@ -114,11 +114,13 @@ func main() {
 			c.Redirect(http.StatusFound, "/")
 		}
 
-		log.Println("candidate vote:", candidateVoteCnt[candidateID-1])
 		if candidateVoteCnt[candidateID-1] == 0 {
 			candidateVoteCnt[candidateID-1] = getVoteCountByCandidateID(candidateID)
 			log.Println("candidate vote gathered")
+		} else {
+			log.Println("candidate vote cnt:", candidateVoteCnt[candidateID-1])
 		}
+
 		candidateIDs := []int{candidateID}
 		keywords := getVoiceOfSupporter(candidateIDs)
 
