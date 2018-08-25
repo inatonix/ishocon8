@@ -116,6 +116,7 @@ func main() {
 
 		if candidateVoteCnt[candidateID-1] == 0 {
 			candidateVoteCnt[candidateID-1] = getVoteCountByCandidateID(candidateID)
+			log.Println("candidate vote gathered")
 		}
 		candidateIDs := []int{candidateID}
 		keywords := getVoiceOfSupporter(candidateIDs)
