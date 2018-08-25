@@ -1,5 +1,10 @@
 package main
 
+import (
+	"fmt"
+	"strings"
+)
+
 // Vote Model
 type Vote struct {
 	ID          int
@@ -20,9 +25,10 @@ func getUserVotedCount(userID int) (count int) {
 	return
 }
 
-func createVote(userID int, candidateID int, keyword string) {
-	db.Exec("INSERT INTO votes (user_id, candidate_id, keyword) VALUES (?, ?, ?)",
-		userID, candidateID, keyword)
+func createVote(valueStrings []string, valueArgs []interface{}) error {
+	statement := fmt.Sprintf("INSERT INTO votes (user_id, candidate_id, keyword) VALUES %s", strings.Join(valueStrings, ","))
+	_, err := db.Exec(statement, valueArgs...)
+	return err
 }
 
 func getVoiceOfSupporter(candidateIDs []int) (voices []string) {

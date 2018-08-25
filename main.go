@@ -204,15 +204,18 @@ func main() {
 		} else if c.PostForm("keyword") == "" {
 			message = "投票理由を記入してください"
 		} else {
-			var userIDs []int
-			var candidateIDs []int
-			var keywords []string
+			valueString := make([]string, 0, voteCount)
+			var valueArgs []interface{}
 			for i := 1; i <= voteCount; i++ {
-				userIDs = append(userIDs, user.ID)
-				candidateIDs = append(candidateIDs, candidate.ID)
-				keywords = append(keywords, c.PostForm("keyword"))
+				valueString = append(valueString, "(?, ?, ?)")
+				valueArgs = append(valueArgs, user.ID)
+				valueArgs = append(valueArgs, candidate.ID)
+				valueArgs = append(valueArgs, c.PostForm("vote_count"))
 			}
-			createVote(userIDs, candidateIDs, keywords)
+			err := createVote(valueString, valueArgs)
+			if err != nil {
+				panic(err)
+			}
 			message = "投票に成功しました"
 		}
 		c.HTML(http.StatusOK, "base", gin.H{
