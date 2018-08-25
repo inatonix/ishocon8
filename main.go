@@ -185,6 +185,7 @@ func main() {
 
 		user, userErr := getUser(c.PostForm("name"), c.PostForm("address"), c.PostForm("mynumber"))
 		candidate, cndErr := getCandidateByName(c.PostForm("candidate"))
+		log.Println("userID:", user.ID)
 		votedCount := getUserVotedCount(user.ID)
 		if cands == nil {
 			cands = getAllCandidate()
