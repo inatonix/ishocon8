@@ -152,7 +152,7 @@ func main() {
 		user, userErr := getUser(c.PostForm("name"), c.PostForm("address"), c.PostForm("mynumber"))
 		candidate, cndErr := getCandidateByName(c.PostForm("candidate"))
 		votedCount := getUserVotedCount(user.ID)
-		candidates := getAllCandidate()
+		cs := getAllCandidate()
 		voteCount, _ := strconv.Atoi(c.PostForm("vote_count"))
 
 		var message string
@@ -174,7 +174,7 @@ func main() {
 			message = "投票に成功しました"
 		}
 		c.HTML(http.StatusOK, "base", gin.H{
-			"candidates": candidates,
+			"candidates": cs,
 			"message":    message,
 		})
 	})
