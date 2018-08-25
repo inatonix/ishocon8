@@ -154,9 +154,7 @@ func main() {
 		user, userErr := getUser(c.PostForm("name"), c.PostForm("address"), c.PostForm("mynumber"))
 		candidate, cndErr := getCandidateByName(c.PostForm("candidate"))
 		votedCount := getUserVotedCount(user.ID)
-		if cs == nil {
-			cs = getAllCandidate()
-		}
+		cs = getAllCandidate()
 		voteCount, _ := strconv.Atoi(c.PostForm("cvote_count"))
 
 		var message string
