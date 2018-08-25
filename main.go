@@ -22,6 +22,9 @@ var rankedCandidates []CandidateElectionResult
 var partyResults []PartyElectionResult
 var electionRes []CandidateElectionResult
 var sexRatio map[string]int
+var candidateVoteCnt [30]int
+
+var nowVoting bool
 
 func getEnv(key, fallback string) string {
 	if value, ok := os.LookupEnv(key); ok {
@@ -112,14 +115,21 @@ func main() {
 		if err != nil {
 			c.Redirect(http.StatusFound, "/")
 		}
-		votes := getVoteCountByCandidateID(candidateID)
+
+		if candidateVoteCnt[candidateID-1] == 0 {
+			candidateVoteCnt[candidateID-1] = getVoteCountByCandidateID(candidateID)
+			log.Println("candidate vote gathered")
+		} else {
+			log.Println("candidate vote cnt:", candidateVoteCnt[candidateID-1])
+		}
+
 		candidateIDs := []int{candidateID}
 		keywords := getVoiceOfSupporter(candidateIDs)
 
 		r.SetHTMLTemplate(template.Must(template.ParseFiles(layout, "templates/candidate.tmpl")))
 		c.HTML(http.StatusOK, "base", gin.H{
 			"candidate": candidate,
-			"votes":     votes,
+			"votes":     candidateVoteCnt[candidateID-1],
 			"keywords":  keywords,
 		})
 	})
@@ -168,6 +178,11 @@ func main() {
 
 	// POST /vote
 	r.POST("/vote", func(c *gin.Context) {
+		if !nowVoting {
+			r.SetHTMLTemplate(template.Must(template.ParseFiles(layout, "templates/vote.tmpl")))
+			nowVoting = true
+		}
+
 		user, userErr := getUser(c.PostForm("name"), c.PostForm("address"), c.PostForm("mynumber"))
 		candidate, cndErr := getCandidateByName(c.PostForm("candidate"))
 		votedCount := getUserVotedCount(user.ID)
@@ -178,7 +193,6 @@ func main() {
 		voteCount, _ := strconv.Atoi(c.PostForm("vote_count"))
 
 		var message string
-		r.SetHTMLTemplate(template.Must(template.ParseFiles(layout, "templates/vote.tmpl")))
 		if userErr != nil {
 			message = "個人情報に誤りがあります"
 		} else if user.Votes < voteCount+votedCount {
@@ -203,7 +217,7 @@ func main() {
 
 	r.GET("/initialize", func(c *gin.Context) {
 		db.Exec("DELETE FROM votes")
-
+		nowVoting = false
 		c.String(http.StatusOK, "Finish")
 	})
 
