@@ -140,7 +140,10 @@ func main() {
 
 	// GET /vote
 	r.GET("/vote", func(c *gin.Context) {
-		candidates := getAllCandidate()
+		if cands == nil {
+			cands = getAllCandidate()
+			log.Println("get cands")
+		}
 
 		r.SetHTMLTemplate(template.Must(template.ParseFiles(layout, "templates/vote.tmpl")))
 		c.HTML(http.StatusOK, "base", gin.H{
@@ -156,8 +159,9 @@ func main() {
 		votedCount := getUserVotedCount(user.ID)
 		if cands == nil {
 			cands = getAllCandidate()
+			log.Println("get cands")
 		}
-		log.Println(cands)
+		// log.Println(cands)
 		voteCount, _ := strconv.Atoi(c.PostForm("vote_count"))
 
 		var message string
