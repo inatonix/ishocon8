@@ -119,8 +119,10 @@ func main() {
 	r.GET("/political_parties/:name", func(c *gin.Context) {
 		partyName := c.Param("name")
 		var votes int
-		electionResults := getElectionResult()
-		for _, r := range electionResults {
+		if electionRes == nil {
+			electionRes = getElectionResult()
+		}
+		for _, r := range electionRes {
 			if r.PoliticalParty == partyName {
 				votes += r.VoteCount
 			}
