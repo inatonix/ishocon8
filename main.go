@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"html/template"
+	"log"
 	"net/http"
 	"os"
 	"sort"
@@ -15,6 +16,7 @@ import (
 )
 
 var db *sql.DB
+var cands []Candidate
 
 func getEnv(key, fallback string) string {
 	if value, ok := os.LookupEnv(key); ok {
@@ -138,11 +140,13 @@ func main() {
 
 	// GET /vote
 	r.GET("/vote", func(c *gin.Context) {
-		candidates := getAllCandidate()
+		if cands == nil {
+			cands = getAllCandidate()
+		}
 
 		r.SetHTMLTemplate(template.Must(template.ParseFiles(layout, "templates/vote.tmpl")))
 		c.HTML(http.StatusOK, "base", gin.H{
-			"candidates": candidates,
+			"candidates": cands,
 			"message":    "",
 		})
 	})
@@ -152,7 +156,10 @@ func main() {
 		user, userErr := getUser(c.PostForm("name"), c.PostForm("address"), c.PostForm("mynumber"))
 		candidate, cndErr := getCandidateByName(c.PostForm("candidate"))
 		votedCount := getUserVotedCount(user.ID)
-		candidates := getAllCandidate()
+		if cands == nil {
+			cands = getAllCandidate()
+			log.Println("get cands")
+		}
 		voteCount, _ := strconv.Atoi(c.PostForm("vote_count"))
 
 		var message string
@@ -174,7 +181,7 @@ func main() {
 			message = "投票に成功しました"
 		}
 		c.HTML(http.StatusOK, "base", gin.H{
-			"candidates": candidates,
+			"candidates": cands,
 			"message":    message,
 		})
 	})
