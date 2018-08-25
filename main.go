@@ -114,8 +114,8 @@ func main() {
 			c.Redirect(http.StatusFound, "/")
 		}
 
-		if candidateVoteCnt[candidateID] == 0 {
-			candidateVoteCnt[candidateID] = getVoteCountByCandidateID(candidateID)
+		if candidateVoteCnt[candidateID-1] == 0 {
+			candidateVoteCnt[candidateID-1] = getVoteCountByCandidateID(candidateID)
 		}
 		candidateIDs := []int{candidateID}
 		keywords := getVoiceOfSupporter(candidateIDs)
@@ -123,7 +123,7 @@ func main() {
 		r.SetHTMLTemplate(template.Must(template.ParseFiles(layout, "templates/candidate.tmpl")))
 		c.HTML(http.StatusOK, "base", gin.H{
 			"candidate": candidate,
-			"votes":     candidateVoteCnt[candidateID],
+			"votes":     candidateVoteCnt[candidateID-1],
 			"keywords":  keywords,
 		})
 	})
