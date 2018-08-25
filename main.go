@@ -16,6 +16,7 @@ import (
 )
 
 var db *sql.DB
+var cands []Candidate
 
 func getEnv(key, fallback string) string {
 	if value, ok := os.LookupEnv(key); ok {
@@ -153,8 +154,10 @@ func main() {
 		user, userErr := getUser(c.PostForm("name"), c.PostForm("address"), c.PostForm("mynumber"))
 		candidate, cndErr := getCandidateByName(c.PostForm("candidate"))
 		votedCount := getUserVotedCount(user.ID)
-		cs := getAllCandidate()
-		log.Println(cs)
+		if cands == nil {
+			cands = getAllCandidate()
+		}
+		log.Println(cands)
 		voteCount, _ := strconv.Atoi(c.PostForm("vote_count"))
 
 		var message string
@@ -176,7 +179,7 @@ func main() {
 			message = "投票に成功しました"
 		}
 		c.HTML(http.StatusOK, "base", gin.H{
-			"candidates": cs,
+			"candidates": cands,
 			"message":    message,
 		})
 	})
