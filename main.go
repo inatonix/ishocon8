@@ -182,17 +182,26 @@ func main() {
 			r.SetHTMLTemplate(template.Must(template.ParseFiles(layout, "templates/vote.tmpl")))
 			nowVoting = true
 		}
-
-		user, userErr := getUser(c.PostForm("name"), c.PostForm("address"), c.PostForm("mynumber"))
-		candidate, cndErr := getCandidateByName(c.PostForm("candidate"))
-		votedCount := getUserVotedCount(user.ID)
 		if cands == nil {
 			cands = getAllCandidate()
 			log.Println("get cands")
 		}
-		voteCount, _ := strconv.Atoi(c.PostForm("vote_count"))
 
 		var message string
+		user, userErr := getUser(c.PostForm("name"), c.PostForm("address"), c.PostForm("mynumber"))
+		if userErr != nil {
+			message = "個人情報に誤りがあります"
+			c.HTML(http.StatusOK, "base", gin.H{
+				"candidates": cands,
+				"message":    message,
+			})
+		}
+
+		candidate, cndErr := getCandidateByName(c.PostForm("candidate"))
+		log.Println("userID:", user.ID)
+		votedCount := getUserVotedCount(user.ID)
+		voteCount, _ := strconv.Atoi(c.PostForm("vote_count"))
+
 		if userErr != nil {
 			message = "個人情報に誤りがあります"
 		} else if user.Votes < voteCount+votedCount {
@@ -204,8 +213,17 @@ func main() {
 		} else if c.PostForm("keyword") == "" {
 			message = "投票理由を記入してください"
 		} else {
+			valueString := make([]string, 0, voteCount)
+			var valueArgs []interface{}
 			for i := 1; i <= voteCount; i++ {
-				createVote(user.ID, candidate.ID, c.PostForm("keyword"))
+				valueString = append(valueString, "(?, ?, ?)")
+				valueArgs = append(valueArgs, user.ID)
+				valueArgs = append(valueArgs, candidate.ID)
+				valueArgs = append(valueArgs, c.PostForm("vote_count"))
+			}
+			err := createVote(valueString, valueArgs)
+			if err != nil {
+				panic(err)
 			}
 			message = "投票に成功しました"
 		}
