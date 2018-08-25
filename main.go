@@ -147,7 +147,7 @@ func main() {
 
 		r.SetHTMLTemplate(template.Must(template.ParseFiles(layout, "templates/vote.tmpl")))
 		c.HTML(http.StatusOK, "base", gin.H{
-			"candidates": candidates,
+			"candidates": cands,
 			"message":    "",
 		})
 	})
