@@ -183,7 +183,16 @@ func main() {
 			nowVoting = true
 		}
 
+		var message string
 		user, userErr := getUser(c.PostForm("name"), c.PostForm("address"), c.PostForm("mynumber"))
+		if userErr != nil {
+			message = "個人情報に誤りがあります"
+			c.HTML(http.StatusOK, "base", gin.H{
+				"candidates": cands,
+				"message":    message,
+			})
+		}
+
 		candidate, cndErr := getCandidateByName(c.PostForm("candidate"))
 		log.Println("userID:", user.ID)
 		votedCount := getUserVotedCount(user.ID)
@@ -193,7 +202,6 @@ func main() {
 		}
 		voteCount, _ := strconv.Atoi(c.PostForm("vote_count"))
 
-		var message string
 		if userErr != nil {
 			message = "個人情報に誤りがあります"
 		} else if user.Votes < voteCount+votedCount {
