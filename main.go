@@ -17,6 +17,7 @@ import (
 
 var db *sql.DB
 var cands []Candidate
+var electionRes []CandidateElectionResult
 
 func getEnv(key, fallback string) string {
 	if value, ok := os.LookupEnv(key); ok {
@@ -46,6 +47,7 @@ func main() {
 	// GET /
 	r.GET("/", func(c *gin.Context) {
 		electionResults := getElectionResult()
+		log.Println(electionResults)
 
 		// 上位10人と最下位のみ表示
 		tmp := make([]CandidateElectionResult, len(electionResults))
