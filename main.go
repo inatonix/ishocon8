@@ -17,6 +17,7 @@ import (
 
 var db *sql.DB
 var cands []Candidate
+var electionRes []CandidateElectionResult
 
 func getEnv(key, fallback string) string {
 	if value, ok := os.LookupEnv(key); ok {
@@ -45,11 +46,14 @@ func main() {
 
 	// GET /
 	r.GET("/", func(c *gin.Context) {
-		electionResults := getElectionResult()
+		if electionRes == nil {
+			electionRes = getElectionResult()
+			log.Println("get res")
+		}
 
 		// 上位10人と最下位のみ表示
-		tmp := make([]CandidateElectionResult, len(electionResults))
-		copy(tmp, electionResults)
+		tmp := make([]CandidateElectionResult, len(electionRes))
+		copy(tmp, electionRes)
 		candidates := tmp[:10]
 		candidates = append(candidates, tmp[len(tmp)-1])
 
@@ -58,7 +62,7 @@ func main() {
 		for _, name := range partyNames {
 			partyResultMap[name] = 0
 		}
-		for _, r := range electionResults {
+		for _, r := range electionRes {
 			partyResultMap[r.PoliticalParty] += r.VoteCount
 		}
 		partyResults := []PartyElectionResult{}
@@ -75,7 +79,7 @@ func main() {
 			"men":   0,
 			"women": 0,
 		}
-		for _, r := range electionResults {
+		for _, r := range electionRes {
 			if r.Sex == "男" {
 				sexRatio["men"] += r.VoteCount
 			} else if r.Sex == "女" {
@@ -115,8 +119,10 @@ func main() {
 	r.GET("/political_parties/:name", func(c *gin.Context) {
 		partyName := c.Param("name")
 		var votes int
-		electionResults := getElectionResult()
-		for _, r := range electionResults {
+		if electionRes == nil {
+			electionRes = getElectionResult()
+		}
+		for _, r := range electionRes {
 			if r.PoliticalParty == partyName {
 				votes += r.VoteCount
 			}
