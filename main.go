@@ -23,6 +23,8 @@ func getEnv(key, fallback string) string {
 	return fallback
 }
 
+var cs []Candidate
+
 func main() {
 	// database setting
 	user := getEnv("ISHOCON2_DB_USER", "ishocon")
@@ -152,8 +154,8 @@ func main() {
 		user, userErr := getUser(c.PostForm("name"), c.PostForm("address"), c.PostForm("mynumber"))
 		candidate, cndErr := getCandidateByName(c.PostForm("candidate"))
 		votedCount := getUserVotedCount(user.ID)
-		candidates := getAllCandidate()
-		voteCount, _ := strconv.Atoi(c.PostForm("vote_count"))
+		candidates := cs
+		voteCount, _ := strconv.Atoi(c.PostForm("cvote_count"))
 
 		var message string
 		r.SetHTMLTemplate(template.Must(template.ParseFiles(layout, "templates/vote.tmpl")))
@@ -182,6 +184,7 @@ func main() {
 	r.GET("/initialize", func(c *gin.Context) {
 		db.Exec("DELETE FROM votes")
 
+		cs = getAllCandidate()
 		c.String(http.StatusOK, "Finish")
 	})
 
