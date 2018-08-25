@@ -182,6 +182,10 @@ func main() {
 			r.SetHTMLTemplate(template.Must(template.ParseFiles(layout, "templates/vote.tmpl")))
 			nowVoting = true
 		}
+		if cands == nil {
+			cands = getAllCandidate()
+			log.Println("get cands")
+		}
 
 		var message string
 		user, userErr := getUser(c.PostForm("name"), c.PostForm("address"), c.PostForm("mynumber"))
@@ -196,10 +200,6 @@ func main() {
 		candidate, cndErr := getCandidateByName(c.PostForm("candidate"))
 		log.Println("userID:", user.ID)
 		votedCount := getUserVotedCount(user.ID)
-		if cands == nil {
-			cands = getAllCandidate()
-			log.Println("get cands")
-		}
 		voteCount, _ := strconv.Atoi(c.PostForm("vote_count"))
 
 		if userErr != nil {
