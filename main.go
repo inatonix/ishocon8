@@ -22,6 +22,7 @@ var rankedCandidates []CandidateElectionResult
 var partyResults []PartyElectionResult
 var electionRes []CandidateElectionResult
 var sexRatio map[string]int
+var candidateVoteCnt [30]int
 
 func getEnv(key, fallback string) string {
 	if value, ok := os.LookupEnv(key); ok {
@@ -112,14 +113,17 @@ func main() {
 		if err != nil {
 			c.Redirect(http.StatusFound, "/")
 		}
-		votes := getVoteCountByCandidateID(candidateID)
+
+		if candidateVoteCnt[candidateID] == 0 {
+			candidateVoteCnt[candidateID] = getVoteCountByCandidateID(candidateID)
+		}
 		candidateIDs := []int{candidateID}
 		keywords := getVoiceOfSupporter(candidateIDs)
 
 		r.SetHTMLTemplate(template.Must(template.ParseFiles(layout, "templates/candidate.tmpl")))
 		c.HTML(http.StatusOK, "base", gin.H{
 			"candidate": candidate,
-			"votes":     votes,
+			"votes":     candidateVoteCnt[candidateID],
 			"keywords":  keywords,
 		})
 	})
