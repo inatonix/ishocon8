@@ -17,7 +17,11 @@ import (
 
 var db *sql.DB
 var cands []Candidate
+
+var rankedCandidates []CandidateElectionResult
+var partyResults []PartyElectionResult
 var electionRes []CandidateElectionResult
+var sexRatio map[string]int
 
 func getEnv(key, fallback string) string {
 	if value, ok := os.LookupEnv(key); ok {
@@ -52,45 +56,50 @@ func main() {
 		}
 
 		// 上位10人と最下位のみ表示
-		tmp := make([]CandidateElectionResult, len(electionRes))
-		copy(tmp, electionRes)
-		candidates := tmp[:10]
-		candidates = append(candidates, tmp[len(tmp)-1])
+		if rankedCandidates == nil {
+			tmp := make([]CandidateElectionResult, len(electionRes))
+			copy(tmp, electionRes)
+			rankedCandidates = tmp[:10]
+			rankedCandidates = append(rankedCandidates, tmp[len(tmp)-1])
+		}
 
-		partyNames := getAllPartyName()
-		partyResultMap := map[string]int{}
-		for _, name := range partyNames {
-			partyResultMap[name] = 0
+		if partyResults == nil {
+			partyNames := getAllPartyName()
+			partyResultMap := map[string]int{}
+			for _, name := range partyNames {
+				partyResultMap[name] = 0
+			}
+			for _, r := range electionRes {
+				partyResultMap[r.PoliticalParty] += r.VoteCount
+			}
+			for name, count := range partyResultMap {
+				r := PartyElectionResult{}
+				r.PoliticalParty = name
+				r.VoteCount = count
+				partyResults = append(partyResults, r)
+			}
+			// 投票数でソート
+			sort.Slice(partyResults, func(i, j int) bool { return partyResults[i].VoteCount > partyResults[j].VoteCount })
 		}
-		for _, r := range electionRes {
-			partyResultMap[r.PoliticalParty] += r.VoteCount
-		}
-		partyResults := []PartyElectionResult{}
-		for name, count := range partyResultMap {
-			r := PartyElectionResult{}
-			r.PoliticalParty = name
-			r.VoteCount = count
-			partyResults = append(partyResults, r)
-		}
-		// 投票数でソート
-		sort.Slice(partyResults, func(i, j int) bool { return partyResults[i].VoteCount > partyResults[j].VoteCount })
 
-		sexRatio := map[string]int{
-			"men":   0,
-			"women": 0,
-		}
-		for _, r := range electionRes {
-			if r.Sex == "男" {
-				sexRatio["men"] += r.VoteCount
-			} else if r.Sex == "女" {
-				sexRatio["women"] += r.VoteCount
+		if sexRatio == nil {
+			sexRatio = map[string]int{
+				"men":   0,
+				"women": 0,
+			}
+			for _, r := range electionRes {
+				if r.Sex == "男" {
+					sexRatio["men"] += r.VoteCount
+				} else if r.Sex == "女" {
+					sexRatio["women"] += r.VoteCount
+				}
 			}
 		}
 
 		funcs := template.FuncMap{"indexPlus1": func(i int) int { return i + 1 }}
 		r.SetHTMLTemplate(template.Must(template.New("main").Funcs(funcs).ParseFiles(layout, "templates/index.tmpl")))
 		c.HTML(http.StatusOK, "base", gin.H{
-			"candidates": candidates,
+			"candidates": rankedCandidates,
 			"parties":    partyResults,
 			"sexRatio":   sexRatio,
 		})
