@@ -161,7 +161,6 @@ func main() {
 			cands = getAllCandidate()
 			log.Println("get cands")
 		}
-		// log.Println(cands)
 		voteCount, _ := strconv.Atoi(c.PostForm("vote_count"))
 
 		var message string
